@@ -1,0 +1,272 @@
+---
+title: "Assignment 3"
+author: ""
+studentID: 300544488
+date: "2023-05-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Question 1 a)**
+The Probability of randomly drawing a club in a 52-card deck is 0.25 as it is one of four possible suits to draw from. The probability of randomly drawing a 7 or higher (including picture cards) in a 52-card deck is 7/13 or 0.54 (2dp).
+
+**Question 1 b)**
+
+```{r}
+card.draw <- function(n = 1, seed = 0) {
+  if (!is.numeric(n) || length(n) > 1 || n <= 0 || n %% 1 != 0) {
+    warning("Invalid input for 'n'. It should be a positive integer.")
+    n <- 1
+  } else {
+    n <- as.integer(n)
+  }
+  
+  if (!is.numeric(seed) || length(seed) > 1) {
+    warning("Invalid input for 'seed'. It should be a single real number.")
+    seed <- 0
+  }
+  
+  set.seed(seed)
+  
+  cards <- sample(1:52, size = n, replace = TRUE)
+  
+  suits <- c("Clubs", "Diamonds", "Hearts", "Spades")
+  vectorOfSuits <- suits[((cards - 1) %/% 13) + 1]
+  
+  numbers <- ((cards - 1) %% 13) + 1
+  
+  data.frame(Suit = vectorOfSuits, Number = numbers)
+}
+
+
+
+```
+
+**Question 1 c)**
+
+```{r error = TRUE}
+card.draw(n = 3.7, seed = 2) # Q1(c)i.
+card.draw(n = 3, seed = 'a') # Q1(c)ii.
+card.draw(n = c(3, 2), seed = c(1, 2)) # Q1(c)iii.
+card.draw(n = 4, seed = 0.3) # Q1(c)iv.
+
+
+
+```
+ card.draw(n = 3.7, seed = 2) # Q1(c)i.
+Warning: Invalid input for 'n'. It should be a positive integer.
+ card.draw(n = 3, seed = 'a') # Q1(c)ii.
+Warning: Invalid input for 'seed'. It should be a single real number.
+ card.draw(n = c(3, 2), seed = c(1, 2)) # Q1(c)iii.
+Warning: Invalid input for 'n'. It should be a positive integer.Warning: Invalid input for 'seed'. It should be a single real number.
+ card.draw(n = 4, seed = 0.3) # Q1(c)iv.
+ 
+**Question 1 d)**
+
+```{r error=TRUE}
+
+drawAMillion<- card.draw(n=1000000)
+
+freqOfFourSuits<- table(drawAMillion$Suit)
+
+dataFrameSuit<- data.frame(Suit= names(freqOfFourSuits),Frequency = as.numeric(freqOfFourSuits))
+
+freqOfNumber <- table(drawAMillion$Number)
+dataFrameNumber <-data.frame(Number = as.numeric(names(freqOfNumber)), Frequency=as.numeric(freqOfNumber))
+
+ggplot(dataFrameSuit, aes(x = Suit, y = Frequency)) + 
+  geom_bar(stat ="identity", fill ="purple") +
+  labs(title = "Frequency of the Four Card Suits", x="Suit", y="Frequency")
+
+ggplot(dataFrameNumber, aes(x = Number, y = Frequency)) + 
+  geom_bar(stat = "identity", fill = "orange") + 
+  labs(title = "Frequency of Each Card Number", x = "Number", y = "Frequency")
+```
+
+
+**Question 1e)**
+
+```{r error=TRUE}
+clubsProportion<- sum(drawAMillion$Suit == "Clubs") / nrow(drawAMillion)
+greaterThan7Prop<- sum(drawAMillion$Number >= 7) / nrow(drawAMillion)
+
+clubsProportion
+greaterThan7Prop
+```
+**Quesiton 1f)**
+
+```{r error=TRUE}
+expectedValue <- sum(1:13 * (1/13))
+
+variance <- sum((1:13 - expectedValue)^2 * (1/13))
+
+set.seed(0)
+
+simulateAMillionDraws <- card.draw(n = 1000000)
+simulatedExpectedValue <- mean(simulateAMillionDraws$Number)
+simulatedVariance <- var(simulateAMillionDraws$Number)
+
+expectedValue
+variance
+simulatedExpectedValue
+simulatedVariance
+
+
+```
+
+
+**Question 2**
+```{r error = TRUE}
+
+montyHallSimulation <- function(approach, plays) {
+  totalWins <- 0
+  
+  for (i in 1:plays) {
+    doors <- c("goat", "goat", "car")
+    randomDoors <- sample(doors)
+    
+    playersChoice <- sample(1:3, 1)
+    
+    goatDoors <- which(randomDoors == "goat")
+    goatDoors <- setdiff(goatDoors, playersChoice)
+    montyChoice <- sample(goatDoors, 1)
+    
+    unopenedDoor <- setdiff(1:3, c(playersChoice, montyChoice))
+    
+    if (approach == "switch") {
+      playersChoice <- unopenedDoor
+    }
+    
+    if (any(doors[playersChoice] == "car")) {
+      totalWins <- totalWins + 1
+    }
+  }
+  
+  return(totalWins / plays)
+}
+
+plays <- 10000
+
+switchApproachProb <- montyHallSimulation("switch", plays)
+stickApproachProb <- montyHallSimulation("stick", plays)
+
+switchApproachProb
+stickApproachProb
+
+```
+
+**Question 3**
+
+
+```{r error = TRUE}
+
+gameSimulation <- function(plays) {
+  totalWins <- 0
+  
+  for (i in 1:plays) {
+    initialRoll <- sample(1:6, 1)
+    
+    if (initialRoll == 6) {
+      next
+    }
+    
+    attempts <- 0
+    while (attempts < 6) {
+      roll <- sample(1:6, 1)
+      
+      if (roll == initialRoll) {
+        totalWins <- totalWins + 1
+        break  
+      } else if (roll == 6) {
+        break  
+      }
+      
+      attempts <- attempts + 1
+    }
+  }
+  
+  return(totalWins / plays)
+}
+
+plays <- 10000
+winProbability <- gameSimulation(plays)
+
+winProbability
+
+```
+
+
+**Question 4 a**
+
+This is an example of a social network, more specifically a proximity network. These particular connecitons are between individuals who belong to the same 'group' (given there is no extra criteria to describing the nodes). Whereas a bipartite network needs a clear distinciton of two groups where nodes can only be connected to other nodes within their respective group. Therefore because the information we are provided with is the connections between nodes and their closeness between each other a social network is the best way to define this network of individuals.
+
+**Question 4 b)**
+The Network is undirected as the edges or relationships go both ways because if Bob lives close to Dennis then Dennis must also live close to Bob. There is no information that depicts that of directionality in this network.
+
+**Question 4 c,d and e)**
+```{r error = TRUE}
+plotNetwork <- function(network) {
+  adjacencyMatrix <- network$adjacencyMatrix
+  vertex.names <- network$vertex.names
+  
+  plot(0, type = "n", xlim = c(-1, 1), ylim = c(-1, 1), xlab = "", ylab = "", main = "Proximity Network")
+  for (i in 1:nrow(adjacencyMatrix)) {
+    x <- cos(2 * pi * (i - 1) / nrow(adjacencyMatrix))
+    y <- sin(2 * pi * (i - 1) / nrow(adjacencyMatrix))
+    text(x, y, vertex.names[i])
+  }
+  
+  for (i in 1:(nrow(adjacencyMatrix) - 1)) {
+    for (j in (i + 1):nrow(adjacencyMatrix)) {
+      if (adjacencyMatrix[i, j] == 1) {
+        x1 <- cos(2 * pi * (i - 1) / nrow(adjacencyMatrix))
+        y1 <- sin(2 * pi * (i - 1) / nrow(adjacencyMatrix))
+        x2 <- cos(2 * pi * (j - 1) / nrow(adjacencyMatrix))
+        y2 <- sin(2 * pi * (j - 1) / nrow(adjacencyMatrix))
+        lines(c(x1, x2), c(y1, y2))
+      }
+    }
+  }
+}
+
+edges <- list(
+  c("Allison", "Francis"),
+  c("Allison", "Cass"),
+  c("Bob", "Dennis"),
+  c("Elliot", "Cass"),
+  c("Elliot", "Francis"),
+  c("Francis", "Cass")
+)
+actors <- unique(unlist(edges))
+adjacencyMatrix <- matrix(0, nrow = length(actors), ncol = length(actors))
+rownames(adjacencyMatrix) <- actors
+colnames(adjacencyMatrix) <- actors
+
+for (edge in edges) {
+  actor1 <- edge[1]
+  actor2 <- edge[2]
+  adjacencyMatrix[actor1, actor2] <- 1
+  adjacencyMatrix[actor2, actor1] <- 1
+}
+
+proximity.net <- list()
+proximity.net$adjacencyMatrix <- adjacencyMatrix
+proximity.net$vertex.names <- actors
+
+print(proximity.net$adjacencyMatrix)
+
+isAdjacent <- proximity.net$adjacencyMatrix["Bob", "Cass"]
+print(isAdjacent)
+
+plotNetwork(proximity.net)
+
+
+```
+
+
+
+
+
